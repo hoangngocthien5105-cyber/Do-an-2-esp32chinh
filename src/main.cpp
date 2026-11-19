@@ -11,6 +11,7 @@
 
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
+#include "SmartKey.h"
 
 // ================= 1. CẤU HÌNH WIFI & FIREBASE =================
 #define WIFI_SSID "iPhone"
@@ -375,6 +376,21 @@ void udpRxTask(void *pvParameters) {
                 requestText(cmd + 8);
             } else if (strncmp(cmd, "CMD:USER:", 9) == 0) {
                 requestText(cmd + 9);
+                if (isOpenDoorVoiceCommand(cmd + 9)) {
+                    if (smartKeyAuthorizeOpenDoor(cmd + 9)) {
+                        // TODO: Gắn hàm điều khiển Servo mở cửa tại đây khi hoàn thiện phần cứng Servo
+                        playToneSpk(1800, 120);
+                    } else {
+                        playToneSpk(600, 200);
+                    }
+                }
+            } else if (strncmp(cmd, "CMD:DOOR:OPEN", 13) == 0) {
+                if (smartKeyAuthorizeOpenDoor(cmd)) {
+                    // TODO: Gắn hàm điều khiển Servo mở cửa tại đây khi hoàn thiện phần cứng Servo
+                    playToneSpk(1800, 120);
+                } else {
+                    playToneSpk(600, 200);
+                }
             }
             continue;
         }
@@ -833,7 +849,7 @@ void connectWiFiAtBoot() {
     WiFi.mode(WIFI_STA);
     WiFi.persistent(false);
     WiFi.setAutoReconnect(true);
-    WiFi.setSleep(false);
+    WiFi.setSleep(true); // Bật modem sleep (bắt buộc để Wi-Fi + BLE 2.4GHz hoạt động đồng thời ổn định)
     WiFi.setTxPower(WIFI_TX_POWER);
     WiFi.onEvent(onWiFiEvent);
 
@@ -884,6 +900,7 @@ void setup() {
     renderOLED();
 
     connectWiFiAtBoot();
+    smartKeyInit();
 
     udpAudio.begin(UDP_SPK_PORT);
     playToneSpk(1500, 150);
@@ -909,6 +926,7 @@ void loop() {
     // ================= 0. XỬ LÝ YÊU CẦU GIAO DIỆN & GIÁM SÁT WIFI =================
     processUiRequests();
     wifiWatchdog(now);
+    smartKeyLoop();
 
     // ================= 1. HIỆU ỨNG NHẤP NHÁY MẮT AI & TỰ QUAY VỀ MẶT AI =================
     if (oledPage != 4 && (now - dataPageShownTime >= DATA_DISPLAY_DURATION)) {
