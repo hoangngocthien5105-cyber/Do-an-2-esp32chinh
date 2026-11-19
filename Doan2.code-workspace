@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "bai1",
+			"path": "../../Hoc thuc hanh/bai1"
+		},
+		{
+			"name": "bai6",
+			"path": "../../Hoc thuc hanh/bai6"
+		},
+		{
+			"name": "bai5",
+			"path": "../../Hoc thuc hanh/bai5"
+		}
+	],
+	"settings": {}
+}
